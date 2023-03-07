@@ -33,6 +33,22 @@ func Chontaduro(session *discordgo.Session, message *discordgo.MessageCreate) er
 	return err
 }
 
+func SendActivePlayers(session *discordgo.Session, channelID string) error {
+	response, err := mcutil.Status(chontaduroAddress, 25565)
+
+	if err != nil {
+		return err
+	}
+
+	msg := fmt.Sprintf("Hay %d jugadores activos:\n", response.Players.Online)
+	for _, player := range response.Players.Sample {
+		msg += fmt.Sprintf("- %s\n", player.NameClean)
+	}
+
+	_, err = session.ChannelMessageSend(channelID, msg)
+	return err
+}
+
 func SearchImage(session *discordgo.Session, message *discordgo.MessageCreate) error {
 	image, err := search.GetRandomImage(message.Content[1:])
 	if err != nil {

@@ -5,14 +5,17 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/go-co-op/gocron"
 	"github.com/javtor/renato/handlers"
 	"github.com/joho/godotenv"
 )
 
 var (
-	token string
+	token     string
+	channelID string
 )
 
 func goDotEnvVariable(key string) string {
@@ -59,6 +62,7 @@ func messageCreate(session *discordgo.Session, message *discordgo.MessageCreate)
 
 func main() {
 	token := goDotEnvVariable("BOT_TOKEN")
+	channelID = goDotEnvVariable("CHANNEL_ID")
 
 	discord, err := discordgo.New("Bot " + token)
 	if err != nil {
@@ -73,6 +77,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	chontaduroCron := gocron.NewScheduler(time.UTC)
+	chontaduroCron.Every(30).Seconds().Do(handlers.SendActivePlayers, discord, channelID)
+	chontaduroCron.StartAsync()
 
 	log.Println("Bot is running. Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
