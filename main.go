@@ -32,6 +32,10 @@ func messageCreate(session *discordgo.Session, message *discordgo.MessageCreate)
 		return
 	}
 
+	if len(message.Content) == 0 {
+		return
+	}
+
 	if message.Content == "ping" {
 		err := handlers.Pong(session, message)
 		if err != nil {
@@ -79,7 +83,7 @@ func main() {
 	}
 
 	chontaduroCron := gocron.NewScheduler(time.UTC)
-	chontaduroCron.Every(30).Seconds().Do(handlers.SendActivePlayers, discord, channelID)
+	chontaduroCron.Every(5).Seconds().Do(handlers.ChontaduroCron, discord, channelID)
 	chontaduroCron.StartAsync()
 
 	log.Println("Bot is running. Press CTRL-C to exit.")
