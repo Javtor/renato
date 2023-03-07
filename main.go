@@ -3,12 +3,15 @@ package main
 import (
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
 )
 
 var (
-	Token string
+	token string
 )
 
 func goDotEnvVariable(key string) string {
@@ -20,7 +23,40 @@ func goDotEnvVariable(key string) string {
 	return os.Getenv(key)
 }
 
+func messageCreate(session *discordgo.Session, message *discordgo.MessageCreate) {
+	if message.Author.ID == session.State.User.ID {
+		return
+	}
+
+	if message.Content == "ping" {
+		_, err := session.ChannelMessageSend(message.ChannelID, "pong")
+		if err != nil {
+			log.Println(err)
+		}
+	}
+}
+
 func main() {
-	strongestAvenger := goDotEnvVariable("STRONGEST_AVENGER")
-	log.Println(strongestAvenger)
+	token := goDotEnvVariable("BOT_TOKEN")
+
+	discord, err := discordgo.New("Bot " + token)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	discord.AddHandler(messageCreate)
+
+	discord.Identify.Intents = discordgo.IntentsGuildMessages
+
+	err = discord.Open()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Bot is running. Press CTRL-C to exit.")
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	<-sc
+
+	discord.Close()
 }
