@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/javtor/renato/handlers"
 	"github.com/joho/godotenv"
 )
 
@@ -23,22 +24,35 @@ func goDotEnvVariable(key string) string {
 	return os.Getenv(key)
 }
 
-func pong(session *discordgo.Session, message *discordgo.MessageCreate) error {
-	_, err := session.ChannelMessageSend(message.ChannelID, "pong")
-	return err
-}
-
 func messageCreate(session *discordgo.Session, message *discordgo.MessageCreate) {
 	if message.Author.ID == session.State.User.ID {
 		return
 	}
 
 	if message.Content == "ping" {
-		err := pong(session, message)
+		err := handlers.Pong(session, message)
 		if err != nil {
 			log.Println(err)
 		}
 		log.Println("Ponged")
+		return
+	}
+
+	if message.Content == "!chontaduro" {
+		err := handlers.Chontaduro(session, message)
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println("Chontaduro")
+		return
+	}
+
+	if message.Content[0] == '!' {
+		err := handlers.SearchImage(session, message)
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println("Search")
 		return
 	}
 }
